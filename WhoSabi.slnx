@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WhoSabi.Api/WhoSabi.Api.csproj" />
+    <Project Path="src/WhoSabi.Application/WhoSabi.Application.csproj" />
+    <Project Path="src/WhoSabi.Contracts/WhoSabi.Contracts.csproj" />
+    <Project Path="src/WhoSabi.Domain/WhoSabi.Domain.csproj" />
+    <Project Path="src/WhoSabi.Infrastructure/WhoSabi.Infrastructure.csproj" />
+  </Folder>
+</Solution>
