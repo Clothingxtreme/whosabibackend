@@ -1,5 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WhoSabi.Api.Auth;
 using WhoSabi.Api.Me;
@@ -12,8 +14,14 @@ using WhoSabi.Application.Rooms;
 using WhoSabi.Application.Users;
 using WhoSabi.Application.Wallets;
 using WhoSabi.Infrastructure;
+using WhoSabi.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Render supplies the listening port at runtime. Binding explicitly also keeps
+// the container usable on other hosting platforms.
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 builder.Services.AddScoped<IInitiateRegistrationUseCase, InitiateRegistrationUseCase>();
 builder.Services.AddScoped<ILoginUseCase, LoginUseCase>();
@@ -51,6 +59,20 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Render terminates TLS before proxying requests to this container.
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Apply the checked-in EF Core migrations before serving traffic. This makes a
+// fresh Render Postgres instance ready without a separate manual migration step.
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<WhoSabiDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -60,6 +82,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
+    .AllowAnonymous();
 
 app.MapAuthEndpoints();
 app.MapMeEndpoints();

@@ -25,7 +25,7 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("DefaultConnection is missing.");
 
         services.AddDbContext<WhoSabiDbContext>(options =>
-            options.UseNpgsql(connectionString));
+            options.UseNpgsql(ToNpgsqlConnectionString(connectionString)));
 
         services.AddScoped<IRegistrationDataStore, EfRegistrationDataStore>();
         services.AddScoped<ILoginDataStore, EfLoginDataStore>();
@@ -40,5 +40,32 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHashingService, Pbkdf2PasswordHashingService>();
 
         return services;
+    }
+
+    // Render supplies database credentials as a PostgreSQL URL, while Npgsql
+    // configuration accepts its keyword connection-string format.
+    private static string ToNpgsqlConnectionString(string connectionString)
+    {
+        if (!connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            return connectionString;
+        }
+
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        if (userInfo.Length != 2)
+        {
+            throw new InvalidOperationException("The PostgreSQL connection URL must include a username and password.");
+        }
+
+        return new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.Port,
+            Database = uri.AbsolutePath.Trim('/'),
+            Username = Uri.UnescapeDataString(userInfo[0]),
+            Password = Uri.UnescapeDataString(userInfo[1])
+        }.ConnectionString;
     }
 }

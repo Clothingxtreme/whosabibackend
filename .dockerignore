@@ -1,0 +1,8 @@
+.git
+.gitignore
+.vs
+.idea
+**/bin
+**/obj
+**/appsettings.Development.json
+README.md
