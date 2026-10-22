@@ -5,10 +5,8 @@ services:
     plan: free
     healthCheckPath: /health
     envVars:
-      - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: whosabi-db
-          property: connectionString
+      - key: DATABASE_URL
+        sync: false
       - key: Jwt__SigningKey
         generateValue: true
       - key: Jwt__Issuer
@@ -16,8 +14,3 @@ services:
       - key: Jwt__Audience
         value: WhoSabi.Client
 
-databases:
-  - name: whosabi-db
-    plan: free
-    databaseName: whosabi
-    user: whosabi

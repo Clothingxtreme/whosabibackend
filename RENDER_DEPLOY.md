@@ -1,25 +1,13 @@
-# Deploying WhoSabi to Render
+# Deploy WhoSabi: Render Free + Neon
 
-1. Push this repository to GitHub.
-2. In Render, select **New > Blueprint** and connect the repository.
-3. Render detects `render.yaml`. Confirm the Blueprint to create:
-   - `whosabi-api` (Docker web service)
-   - `whosabi-db` (PostgreSQL)
-4. Click **Apply**. Render builds the Docker image, supplies the database
-   connection string, generates the JWT signing key, and runs the EF Core
-   migrations during application startup.
-5. After the service is live, open `https://<your-service>.onrender.com/health`.
-   It should return `{ "status": "ok" }`.
+1. Push this backend repository to GitHub. Do not commit `.env.render`.
+2. In Render, choose New > Blueprint and connect the repository. The blueprint creates only the free Docker API; the database is hosted in Neon.
+3. When prompted for DATABASE_URL, use the direct Neon URL from your private `.env.render`. The blueprint generates the JWT signing key and sets issuer/audience automatically.
+4. Alternatively, create a Free Docker Web Service and import `.env.render` in its Environment settings. Use `/health` as the health check. The Dockerfile is at the repository root.
+5. Deploy and visit `https://<service>.onrender.com/health`. Startup applies the checked-in EF migrations to Neon.
 
-## Environment variables
+The existing Neon password is unchanged. DATABASE_URL is read directly by the backend, including sslmode and channel_binding. A separately configured ConnectionStrings__DefaultConnection takes precedence; remove any stale value in Render.
 
-The Blueprint sets these automatically:
+Render does not automatically load local .env files. Import the private file manually for a manually created service. Blueprint deployments generate their own JWT secret.
 
-- `ConnectionStrings__DefaultConnection`
-- `Jwt__SigningKey`
-- `Jwt__Issuer`
-- `Jwt__Audience`
-
-If a browser frontend is deployed separately, add its public origin to the API's
-CORS configuration before using authenticated API calls. Keep `Jwt__SigningKey`
-secret; changing it invalidates existing login tokens.
+Free Render services sleep when idle. Configure CORS for the frontend's actual origin before browser integration. Payment confirmation still requires server-side provider verification before real payments.

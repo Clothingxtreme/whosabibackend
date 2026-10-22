@@ -22,7 +22,8 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("DefaultConnection is missing.");
+            ?? configuration["DATABASE_URL"]
+            ?? throw new InvalidOperationException("Set DefaultConnection or DATABASE_URL.");
 
         services.AddDbContext<WhoSabiDbContext>(options =>
             options.UseNpgsql(ToNpgsqlConnectionString(connectionString)));
@@ -59,13 +60,26 @@ public static class DependencyInjection
             throw new InvalidOperationException("The PostgreSQL connection URL must include a username and password.");
         }
 
-        return new Npgsql.NpgsqlConnectionStringBuilder
+        var result = new Npgsql.NpgsqlConnectionStringBuilder
         {
             Host = uri.Host,
-            Port = uri.Port,
-            Database = uri.AbsolutePath.Trim('/'),
+            Port = uri.Port > 0 ? uri.Port : 5432,
+            Database = Uri.UnescapeDataString(uri.AbsolutePath.Trim('/')),
             Username = Uri.UnescapeDataString(userInfo[0]),
             Password = Uri.UnescapeDataString(userInfo[1])
-        }.ConnectionString;
+        };
+
+        foreach (var parameter in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var pair = parameter.Split('=', 2);
+            var key = Uri.UnescapeDataString(pair[0]);
+            var value = pair.Length == 2 ? Uri.UnescapeDataString(pair[1]) : "";
+            if (key.Equals("sslmode", StringComparison.OrdinalIgnoreCase))
+                result["SSL Mode"] = value;
+            else if (key.Equals("channel_binding", StringComparison.OrdinalIgnoreCase))
+                result["Channel Binding"] = value;
+        }
+
+        return result.ConnectionString;
     }
 }
