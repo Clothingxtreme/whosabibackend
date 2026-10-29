@@ -10,9 +10,12 @@ public sealed class EfLoginDataStore(WhoSabiDbContext dbContext) : ILoginDataSto
         string normalizedEmail,
         CancellationToken cancellationToken = default)
     {
-        var user = await dbContext.Users.SingleOrDefaultAsync(
-            candidate => candidate.NormalizedEmail == normalizedEmail,
-            cancellationToken);
+        var matches = await dbContext.Users.Where(candidate =>
+                candidate.NormalizedEmail == normalizedEmail ||
+                candidate.Username.ToLower() == normalizedEmail ||
+                candidate.PhoneNumber == normalizedEmail)
+            .Take(2).ToListAsync(cancellationToken);
+        var user = matches.Count == 1 ? matches[0] : null;
 
         if (user is null)
         {

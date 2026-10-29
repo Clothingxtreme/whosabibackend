@@ -1,4 +1,3 @@
-using System.Net.Mail;
 using WhoSabi.Contracts.Auth;
 
 namespace WhoSabi.Application.Auth;
@@ -12,7 +11,8 @@ public sealed class LoginUseCase(
         LoginRequest request,
         CancellationToken cancellationToken = default)
     {
-        var email = NormalizeEmail(request.Email);
+        var email = (request.Identifier ?? request.Email ?? "").Trim().ToLowerInvariant();
+        if (email.Length is < 1 or > 255) throw InvalidCredentials();
         ValidatePasswordInput(request.Password);
 
         var user = await dataStore.FindUserByEmailAsync(email, cancellationToken);
@@ -41,18 +41,6 @@ public sealed class LoginUseCase(
             accessToken.ExpiresAt);
     }
 
-    private static string NormalizeEmail(string email)
-    {
-        var normalized = email.Trim().ToLowerInvariant();
-
-        if (normalized.Length > 255 || !IsValidEmail(normalized))
-        {
-            throw InvalidCredentials();
-        }
-
-        return normalized;
-    }
-
     private static void ValidatePasswordInput(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
@@ -65,19 +53,7 @@ public sealed class LoginUseCase(
     {
         return new LoginException(
             "INVALID_CREDENTIALS",
-            "Email or password is incorrect.");
+            "Login details are incorrect.");
     }
 
-    private static bool IsValidEmail(string email)
-    {
-        try
-        {
-            var parsed = new MailAddress(email);
-            return parsed.Address.Equals(email, StringComparison.OrdinalIgnoreCase);
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
-    }
 }

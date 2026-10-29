@@ -5,8 +5,6 @@ namespace WhoSabi.Application.Rooms;
 public sealed class SubmitRoomAnswerUseCase(ISubmitRoomAnswerDataStore dataStore)
     : ISubmitRoomAnswerUseCase
 {
-    private const long CorrectAnswerRewardKobo = 25_000;
-
     public async Task<SubmitRoomAnswerResponse> HandleAsync(
         Guid userId,
         string roomId,
@@ -49,7 +47,6 @@ public sealed class SubmitRoomAnswerUseCase(ISubmitRoomAnswerDataStore dataStore
             normalizedRoomId,
             normalizedQuestionId,
             request.SelectedIndex,
-            CorrectAnswerRewardKobo,
             now,
             cancellationToken);
 

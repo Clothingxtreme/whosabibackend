@@ -12,6 +12,7 @@ public sealed class EfLiveRoomDataStore(WhoSabiDbContext dbContext) : ILiveRoomD
     {
         var rooms = await dbContext.Rooms
             .Where(room => room.Status == RoomStatus.Live)
+            .Where(room => !room.IsTestRoom && !dbContext.Set<WhoSabi.Domain.Platform.Tournament>().Any(x => x.RoomId == room.Id && x.InviteOnly))
             .OrderByDescending(room => room.PlayerCount)
             .ThenByDescending(room => room.PrizePoolKobo)
             .ToArrayAsync(cancellationToken);

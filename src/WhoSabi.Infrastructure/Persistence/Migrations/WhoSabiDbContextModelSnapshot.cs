@@ -28,6 +28,10 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AcceptedPolicyVersion")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -48,6 +52,13 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTimeOffset?>("PolicyAcceptedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ReferralCode")
                         .HasMaxLength(50)
@@ -136,6 +147,9 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("InternalReference")
@@ -149,7 +163,375 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_payment_transactions_provider_reference");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("payment_transactions", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.AppNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("notifications", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.BankAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("BankCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "BankCode", "AccountNumber")
+                        .IsUnique();
+
+                    b.ToTable("bank_accounts", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ClientMessageId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("RoomId", "CreatedAt");
+
+                    b.HasIndex("RoomId", "UserId", "ClientMessageId")
+                        .IsUnique();
+
+                    b.ToTable("chat_messages", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.PushDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("NotificationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceId");
+
+                    b.HasIndex("NotificationId", "DeviceId")
+                        .IsUnique();
+
+                    b.ToTable("push_deliveries", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.PushDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("push_devices", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.RoomRound", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("EndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("QuestionId")
+                        .IsRequired()
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("RoomId")
+                        .IsUnique()
+                        .HasFilter("\"ClosedAt\" IS NULL");
+
+                    b.HasIndex("RoomId", "QuestionId")
+                        .IsUnique();
+
+                    b.ToTable("room_rounds", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_round_deadline", "\"EndsAt\" >= \"StartedAt\"");
+                        });
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.Tournament", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("EntryFeeKobo")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("InviteOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("PoolKobo")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset?>("SettledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("StartsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("RoomId")
+                        .IsUnique();
+
+                    b.ToTable("tournaments", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.TournamentEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("PaidKobo")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PayoutKobo")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("TournamentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TournamentId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("tournament_entries", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.TournamentInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TournamentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TournamentId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("tournament_invites", (string)null);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.WalletOperation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AmountKobo")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("wallet_operations", (string)null);
                 });
 
             modelBuilder.Entity("WhoSabi.Domain.Rooms.Room", b =>
@@ -163,6 +545,12 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
 
                     b.Property<long>("EntryFeeKobo")
                         .HasColumnType("bigint");
+
+                    b.Property<Guid?>("HostUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsTestRoom")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("PlayerCount")
                         .HasColumnType("integer");
@@ -190,6 +578,8 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("HostUserId");
+
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_rooms_status");
 
@@ -201,9 +591,10 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                             Id = "naija-night",
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 7, 14, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EntryFeeKobo = 80000L,
-                            PlayerCount = 486,
-                            PrizePoolKobo = 15000000L,
-                            Status = "Live",
+                            IsTestRoom = false,
+                            PlayerCount = 0,
+                            PrizePoolKobo = 0L,
+                            Status = "Scheduled",
                             Subtitle = "Fast money. Faster answers. 30 seconds to flex your knowledge.",
                             Title = "Naija Night Showdown"
                         },
@@ -212,9 +603,10 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                             Id = "campus-clash",
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 7, 14, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EntryFeeKobo = 120000L,
-                            PlayerCount = 712,
-                            PrizePoolKobo = 22500000L,
-                            Status = "Live",
+                            IsTestRoom = false,
+                            PlayerCount = 0,
+                            PrizePoolKobo = 0L,
+                            Status = "Scheduled",
                             Subtitle = "Students battle for bragging rights and a midnight payout.",
                             Title = "Campus Clash Arena"
                         },
@@ -223,9 +615,10 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                             Id = "family-fuse",
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 7, 14, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EntryFeeKobo = 65000L,
-                            PlayerCount = 368,
-                            PrizePoolKobo = 9800000L,
-                            Status = "Live",
+                            IsTestRoom = false,
+                            PlayerCount = 0,
+                            PrizePoolKobo = 0L,
+                            Status = "Scheduled",
                             Subtitle = "Survey style answers with social pressure and crowd reactions.",
                             Title = "Family Fuse Live"
                         },
@@ -234,9 +627,10 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                             Id = "millionaire-rush",
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 7, 14, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EntryFeeKobo = 250000L,
-                            PlayerCount = 932,
-                            PrizePoolKobo = 50000000L,
-                            Status = "Live",
+                            IsTestRoom = false,
+                            PlayerCount = 0,
+                            PrizePoolKobo = 0L,
+                            Status = "Scheduled",
                             Subtitle = "Premium stakes with dramatic countdown rounds and clutch prizes.",
                             Title = "Millionaire Rush"
                         });
@@ -855,8 +1249,14 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("CanPublishMedia")
+                        .HasColumnType("boolean");
+
                     b.Property<long>("EntryFeeKobo")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1822,10 +2222,18 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AcceptedPolicyVersion")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
                     b.Property<string>("AvatarLabel")
                         .IsRequired()
                         .HasMaxLength(5)
                         .HasColumnType("character varying(5)");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1838,7 +2246,14 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                     b.Property<int>("GamesPlayed")
                         .HasColumnType("integer");
 
+                    b.Property<string>("GoogleSubject")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<bool>("HasPaidRegistrationFee")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsTestAccount")
                         .HasColumnType("boolean");
 
                     b.Property<string>("NormalizedEmail")
@@ -1850,6 +2265,13 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTimeOffset?>("PolicyAcceptedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ReferralCode")
                         .IsRequired()
@@ -1869,9 +2291,15 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GoogleSubject")
+                        .IsUnique();
+
                     b.HasIndex("NormalizedEmail")
                         .IsUnique()
                         .HasDatabaseName("ux_users_normalized_email");
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
 
                     b.HasIndex("ReferralCode")
                         .IsUnique()
@@ -1909,7 +2337,10 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_wallet_accounts_user_id");
 
-                    b.ToTable("wallet_accounts", (string)null);
+                    b.ToTable("wallet_accounts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_wallet_balance_nonnegative", "\"BalanceKobo\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("WhoSabi.Domain.Wallets.WalletLedgerEntry", b =>
@@ -1963,6 +2394,10 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                     b.HasIndex("WalletAccountId")
                         .HasDatabaseName("ix_wallet_ledger_entries_wallet_account_id");
 
+                    b.HasIndex("WalletAccountId", "Reference")
+                        .IsUnique()
+                        .HasFilter("\"Reference\" IS NOT NULL");
+
                     b.ToTable("wallet_ledger_entries", (string)null);
                 });
 
@@ -1971,6 +2406,145 @@ namespace WhoSabi.Infrastructure.Persistence.Migrations
                     b.HasOne("WhoSabi.Domain.Auth.PendingSignup", null)
                         .WithMany()
                         .HasForeignKey("PendingSignupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.AppNotification", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.BankAccount", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.ChatMessage", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Rooms.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.PushDelivery", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Platform.PushDevice", null)
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WhoSabi.Domain.Platform.AppNotification", null)
+                        .WithMany()
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.PushDevice", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.RoomRound", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Rooms.RoomQuestion", null)
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WhoSabi.Domain.Rooms.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.Tournament", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WhoSabi.Domain.Rooms.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.TournamentEntry", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Platform.Tournament", null)
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.TournamentInvite", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Platform.Tournament", null)
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Platform.WalletOperation", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WhoSabi.Domain.Rooms.Room", b =>
+                {
+                    b.HasOne("WhoSabi.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("HostUserId")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 

@@ -4,7 +4,7 @@ public sealed record SubmitRoomAnswerResultRecord(
     string RoomId,
     string QuestionId,
     int SelectedIndex,
-    bool IsCorrect,
+    bool? IsCorrect,
     long RewardKobo,
     long WalletBalanceKobo,
     Guid? WalletTransactionId,

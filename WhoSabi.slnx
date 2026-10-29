@@ -6,4 +6,7 @@
     <Project Path="src/WhoSabi.Domain/WhoSabi.Domain.csproj" />
     <Project Path="src/WhoSabi.Infrastructure/WhoSabi.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WhoSabi.Api.Tests/WhoSabi.Api.Tests.csproj" />
+  </Folder>
 </Solution>

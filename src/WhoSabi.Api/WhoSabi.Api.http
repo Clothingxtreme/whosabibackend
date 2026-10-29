@@ -1,6 +1,6 @@
-@WhoSabi.Api_HostAddress = http://localhost:5119
+@WhoSabi.Api_HostAddress = https://api.whosabi.ng
 
-GET {{WhoSabi.Api_HostAddress}}/weatherforecast/
+GET {{WhoSabi.Api_HostAddress}}/health
 Accept: application/json
 
 ###

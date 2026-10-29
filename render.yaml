@@ -5,6 +5,8 @@ services:
     plan: free
     healthCheckPath: /health
     envVars:
+      - key: PublicApiUrl
+        value: https://api.whosabi.ng
       - key: DATABASE_URL
         sync: false
       - key: Jwt__SigningKey

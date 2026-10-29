@@ -1,6 +1,8 @@
 .git
 .gitignore
 .env*
+.private
+**/TestResults
 .vs
 .idea
 **/bin

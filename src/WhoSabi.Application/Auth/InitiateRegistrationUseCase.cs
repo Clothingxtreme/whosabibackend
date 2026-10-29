@@ -24,7 +24,12 @@ public sealed class InitiateRegistrationUseCase(
         var username = NormalizeUsername(request.Username);
         var email = NormalizeEmail(request.Email);
         var referralCode = NormalizeReferralCode(request.ReferralCode);
+        if (referralCode is not null)
+            throw new RegistrationInitiationException("REFERRALS_DISABLED", "Referral rewards are not enabled until eligibility rules are configured.");
         var paymentMethod = NormalizePaymentMethod(request.PaymentMethod);
+        var phone = RegistrationProfile.NormalizePhone(request.PhoneNumber);
+        if (!request.AcceptedTerms || !request.AcceptedPrivacy || request.PolicyVersion != RegistrationProfile.CurrentPolicyVersion)
+            throw new RegistrationInitiationException("POLICY_ACCEPTANCE_REQUIRED", "Accept the current terms and privacy policy.");
 
         ValidatePassword(request.Password);
 
@@ -54,6 +59,9 @@ public sealed class InitiateRegistrationUseCase(
 
         var signup = new PendingSignup
         {
+            PhoneNumber = phone,
+            AcceptedPolicyVersion = request.PolicyVersion,
+            PolicyAcceptedAt = now,
             Username = username,
             Email = email,
             NormalizedEmail = email,
@@ -93,9 +101,9 @@ public sealed class InitiateRegistrationUseCase(
 
     private static string NormalizeUsername(string username)
     {
-        var normalized = username.Trim();
+        var normalized = (username ?? "").Trim();
 
-        if (normalized.Length is < 3 or > 50)
+        if (!System.Text.RegularExpressions.Regex.IsMatch(normalized, "^[A-Za-z][A-Za-z0-9_]{2,49}$"))
         {
             throw new RegistrationInitiationException(
                 "INVALID_USERNAME",
@@ -107,7 +115,7 @@ public sealed class InitiateRegistrationUseCase(
 
     private static string NormalizeEmail(string email)
     {
-        var normalized = email.Trim().ToLowerInvariant();
+        var normalized = (email ?? "").Trim().ToLowerInvariant();
 
         if (normalized.Length > 255 || !IsValidEmail(normalized))
         {
@@ -139,7 +147,7 @@ public sealed class InitiateRegistrationUseCase(
 
     private static string NormalizePaymentMethod(string paymentMethod)
     {
-        var normalized = paymentMethod.Trim().ToLowerInvariant();
+        var normalized = (paymentMethod ?? "").Trim().ToLowerInvariant();
 
         if (!SupportedPaymentMethods.Contains(normalized))
         {

@@ -37,6 +37,19 @@ public sealed class EfJoinRoomDataStore(WhoSabiDbContext dbContext) : IJoinRoomD
                 "ROOM_NOT_LIVE",
                 "Room is not accepting joins right now.");
         }
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
+        if (room.IsTestRoom && user?.IsTestAccount != true || user?.IsTestAccount == true && role == RoomParticipantRole.Player && room.EntryFeeKobo > 0)
+            throw new JoinRoomException("TEST_ACCOUNT_RESTRICTED", "Test accounts can play only free rooms; test rooms are private to test accounts.");
+        var tournament = await dbContext.Set<WhoSabi.Domain.Platform.Tournament>().SingleOrDefaultAsync(x => x.RoomId == roomId, cancellationToken);
+        if (tournament is null && role == RoomParticipantRole.Player && room.EntryFeeKobo > 0)
+            throw new JoinRoomException("PAID_ROOM_NOT_CONFIGURED", "Paid play requires a funded tournament and its entry/settlement rules.");
+        if (tournament is not null)
+        {
+            if (tournament.InviteOnly && tournament.OwnerId != userId && !await dbContext.Set<WhoSabi.Domain.Platform.TournamentInvite>().AnyAsync(x => x.TournamentId == tournament.Id && x.UserId == userId && x.Status == "accepted", cancellationToken))
+                throw new JoinRoomException("INVITE_REQUIRED", "Accept the tournament invitation first.");
+            if (role == RoomParticipantRole.Player && !await dbContext.Set<WhoSabi.Domain.Platform.TournamentEntry>().AnyAsync(x => x.TournamentId == tournament.Id && x.UserId == userId, cancellationToken))
+                throw new JoinRoomException("ARENA_ENTRY_REQUIRED", "Use the tournament enter endpoint; room join cannot pay tournament entry.");
+        }
 
         var userExists = await dbContext.Users.AnyAsync(
             user => user.Id == userId,
@@ -63,6 +76,7 @@ public sealed class EfJoinRoomDataStore(WhoSabiDbContext dbContext) : IJoinRoomD
         var participant = await dbContext.RoomParticipants.SingleOrDefaultAsync(
             candidate => candidate.RoomId == room.Id && candidate.UserId == userId,
             cancellationToken);
+        if (participant?.IsBanned == true) throw new JoinRoomException("ROOM_BANNED", "The host removed you from this room.");
 
         if (participant is not null &&
             participant.Status == RoomParticipantStatus.Active &&

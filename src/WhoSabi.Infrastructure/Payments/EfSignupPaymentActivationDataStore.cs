@@ -72,6 +72,8 @@ public sealed class EfSignupPaymentActivationDataStore(WhoSabiDbContext dbContex
         CancellationToken cancellationToken = default)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await dbContext.Database.ExecuteSqlInterpolatedAsync($"SELECT 1 FROM payment_transactions WHERE \"Id\" = {paymentTransactionId} FOR UPDATE", cancellationToken);
+        dbContext.ChangeTracker.Clear();
 
         var payment = await dbContext.PaymentTransactions.SingleOrDefaultAsync(
             candidate => candidate.Id == paymentTransactionId,
@@ -150,6 +152,9 @@ public sealed class EfSignupPaymentActivationDataStore(WhoSabiDbContext dbContex
 
         var user = new User
         {
+            PhoneNumber = pendingSignup.PhoneNumber,
+            AcceptedPolicyVersion = pendingSignup.AcceptedPolicyVersion,
+            PolicyAcceptedAt = pendingSignup.PolicyAcceptedAt,
             Username = pendingSignup.Username,
             Email = pendingSignup.Email,
             NormalizedEmail = pendingSignup.NormalizedEmail,

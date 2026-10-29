@@ -2,6 +2,8 @@ namespace WhoSabi.Domain.Rooms;
 
 public sealed class Room
 {
+    public Guid? HostUserId { get; set; }
+    public bool IsTestRoom { get; set; }
     public string Id { get; set; } = string.Empty;
 
     public string Title { get; set; } = string.Empty;

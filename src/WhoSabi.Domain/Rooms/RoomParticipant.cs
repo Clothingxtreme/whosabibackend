@@ -2,6 +2,8 @@ namespace WhoSabi.Domain.Rooms;
 
 public sealed class RoomParticipant
 {
+    public bool IsBanned { get; set; }
+    public bool CanPublishMedia { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string RoomId { get; set; } = string.Empty;

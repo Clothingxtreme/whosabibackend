@@ -2,6 +2,7 @@ namespace WhoSabi.Domain.Payments;
 
 public sealed class PaymentTransaction
 {
+    public Guid? UserId { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public Guid? PendingSignupId { get; set; }

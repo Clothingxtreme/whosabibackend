@@ -7,7 +7,6 @@ public interface ISubmitRoomAnswerDataStore
         string roomId,
         string questionId,
         int selectedIndex,
-        long correctAnswerRewardKobo,
         DateTimeOffset now,
         CancellationToken cancellationToken = default);
 }

@@ -20,6 +20,11 @@ public sealed class EfRoomDetailDataStore(WhoSabiDbContext dbContext) : IRoomDet
         {
             return null;
         }
+        var tournament = await dbContext.Set<WhoSabi.Domain.Platform.Tournament>().SingleOrDefaultAsync(x => x.RoomId == roomId, cancellationToken);
+        if (tournament is { InviteOnly: true } && tournament.OwnerId != userId &&
+            !await dbContext.Set<WhoSabi.Domain.Platform.TournamentInvite>().AnyAsync(x => x.TournamentId == tournament.Id && x.UserId == userId && x.Status == "accepted", cancellationToken))
+            return null;
+        if (room.IsTestRoom && !await dbContext.Users.AnyAsync(x => x.Id == userId && x.IsTestAccount, cancellationToken)) return null;
 
         var participant = await dbContext.RoomParticipants.SingleOrDefaultAsync(
             candidate =>
@@ -40,20 +45,16 @@ public sealed class EfRoomDetailDataStore(WhoSabiDbContext dbContext) : IRoomDet
             .Select(color => color.Hex)
             .ToArrayAsync(cancellationToken);
 
-        var participants = await dbContext.RoomDisplayParticipants
-            .Where(displayParticipant => displayParticipant.RoomId == room.Id)
-            .OrderBy(displayParticipant => displayParticipant.SortOrder)
-            .Select(displayParticipant => new RoomDetailParticipantRecord(
-                displayParticipant.Id,
-                displayParticipant.Name,
-                displayParticipant.Initials,
-                displayParticipant.GlowColorHex,
-                displayParticipant.IsHostAi,
-                displayParticipant.Score))
+        var participants = await dbContext.RoomParticipants
+            .Where(p => p.RoomId == room.Id && p.Status == RoomParticipantStatus.Active)
+            .Join(dbContext.Users, p => p.UserId, u => u.Id, (p, u) => new RoomDetailParticipantRecord(
+                u.Id.ToString(), u.Username, u.AvatarLabel, "#21C9F3", false,
+                dbContext.RoomAnswerSubmissions.Count(s => s.RoomId == roomId && s.UserId == u.Id && s.IsCorrect && dbContext.Set<WhoSabi.Domain.Platform.RoomRound>().Any(r => r.QuestionId == s.QuestionId && r.ClosedAt != null))))
             .ToArrayAsync(cancellationToken);
 
         var questions = await dbContext.RoomQuestions
             .Where(question => question.RoomId == room.Id)
+            .Where(question => dbContext.Set<WhoSabi.Domain.Platform.RoomRound>().Any(r => r.RoomId == room.Id && r.QuestionId == question.Id))
             .OrderBy(question => question.SortOrder)
             .Select(question => new
             {

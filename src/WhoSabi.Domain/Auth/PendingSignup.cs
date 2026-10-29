@@ -2,6 +2,9 @@ namespace WhoSabi.Domain.Auth;
 
 public sealed class PendingSignup
 {
+    public string? PhoneNumber { get; set; }
+    public string? AcceptedPolicyVersion { get; set; }
+    public DateTimeOffset? PolicyAcceptedAt { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Username { get; set; } = string.Empty;

@@ -2,6 +2,12 @@ namespace WhoSabi.Domain.Users;
 
 public sealed class User
 {
+    public string? PhoneNumber { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? AcceptedPolicyVersion { get; set; }
+    public DateTimeOffset? PolicyAcceptedAt { get; set; }
+    public bool IsTestAccount { get; set; }
+    public string? GoogleSubject { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Username { get; set; } = string.Empty;

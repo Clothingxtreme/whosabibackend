@@ -38,6 +38,7 @@ public sealed class WhoSabiDbContext(DbContextOptions<WhoSabiDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        PlatformModel.Configure(modelBuilder);
         modelBuilder.Entity<PendingSignup>(entity =>
         {
             entity.ToTable("pending_signups");
@@ -588,10 +589,10 @@ internal static class RoomSeedData
             Id = "naija-night",
             Title = "Naija Night Showdown",
             Subtitle = "Fast money. Faster answers. 30 seconds to flex your knowledge.",
-            PrizePoolKobo = 15_000_000,
-            PlayerCount = 486,
+            PrizePoolKobo = 0,
+            PlayerCount = 0,
             EntryFeeKobo = 80_000,
-            Status = RoomStatus.Live,
+            Status = RoomStatus.Scheduled,
             CreatedAt = SeededAt
         },
         new()
@@ -599,10 +600,10 @@ internal static class RoomSeedData
             Id = "campus-clash",
             Title = "Campus Clash Arena",
             Subtitle = "Students battle for bragging rights and a midnight payout.",
-            PrizePoolKobo = 22_500_000,
-            PlayerCount = 712,
+            PrizePoolKobo = 0,
+            PlayerCount = 0,
             EntryFeeKobo = 120_000,
-            Status = RoomStatus.Live,
+            Status = RoomStatus.Scheduled,
             CreatedAt = SeededAt
         },
         new()
@@ -610,10 +611,10 @@ internal static class RoomSeedData
             Id = "family-fuse",
             Title = "Family Fuse Live",
             Subtitle = "Survey style answers with social pressure and crowd reactions.",
-            PrizePoolKobo = 9_800_000,
-            PlayerCount = 368,
+            PrizePoolKobo = 0,
+            PlayerCount = 0,
             EntryFeeKobo = 65_000,
-            Status = RoomStatus.Live,
+            Status = RoomStatus.Scheduled,
             CreatedAt = SeededAt
         },
         new()
@@ -621,10 +622,10 @@ internal static class RoomSeedData
             Id = "millionaire-rush",
             Title = "Millionaire Rush",
             Subtitle = "Premium stakes with dramatic countdown rounds and clutch prizes.",
-            PrizePoolKobo = 50_000_000,
-            PlayerCount = 932,
+            PrizePoolKobo = 0,
+            PlayerCount = 0,
             EntryFeeKobo = 250_000,
-            Status = RoomStatus.Live,
+            Status = RoomStatus.Scheduled,
             CreatedAt = SeededAt
         }
     ];

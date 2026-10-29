@@ -5,4 +5,8 @@ public sealed record InitiateRegistrationRequest(
     string Email,
     string Password,
     string? ReferralCode,
-    string PaymentMethod);
+    string PaymentMethod,
+    string? PhoneNumber = null,
+    bool AcceptedTerms = false,
+    bool AcceptedPrivacy = false,
+    string? PolicyVersion = null);

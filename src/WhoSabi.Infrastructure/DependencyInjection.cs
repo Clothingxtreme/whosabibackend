@@ -21,12 +21,15 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? configuration["DATABASE_URL"]
-            ?? throw new InvalidOperationException("Set DefaultConnection or DATABASE_URL.");
-
-        services.AddDbContext<WhoSabiDbContext>(options =>
-            options.UseNpgsql(ToNpgsqlConnectionString(connectionString)));
+        services.AddDbContext<WhoSabiDbContext>((provider, options) =>
+        {
+            // Resolve after host configuration is complete (including test-host overrides).
+            var settings = provider.GetRequiredService<IConfiguration>();
+            var connectionString = settings.GetConnectionString("DefaultConnection")
+                ?? settings["DATABASE_URL"]
+                ?? throw new InvalidOperationException("Set DefaultConnection or DATABASE_URL.");
+            options.UseNpgsql(ToNpgsqlConnectionString(connectionString));
+        });
 
         services.AddScoped<IRegistrationDataStore, EfRegistrationDataStore>();
         services.AddScoped<ILoginDataStore, EfLoginDataStore>();
@@ -45,7 +48,7 @@ public static class DependencyInjection
 
     // Render supplies database credentials as a PostgreSQL URL, while Npgsql
     // configuration accepts its keyword connection-string format.
-    private static string ToNpgsqlConnectionString(string connectionString)
+    public static string ToNpgsqlConnectionString(string connectionString)
     {
         if (!connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
             !connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
